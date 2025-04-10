@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shadow Tag: Light Escape</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to top, #232526, #414345);
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    .game-container {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+      max-width: 95vw;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+      color: #00bcd4;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 15px;
+      font-size: 1em;
+    }
+
+    #scoreboard, #timer, #level {
+      margin: 5px 0;
+      font-size: 1.1em;
+      color: #ffd700;
+    }
+
+    #game {
+      display: grid;
+      justify-content: center;
+      margin: 15px 0;
+      gap: 4px;
+    }
+
+    .tile {
+      background: #444;
+      border-radius: 6px;
+      width: var(--tile-size);
+      height: var(--tile-size);
+      transition: background 0.3s;
+    }
+
+    .player {
+      background: linear-gradient(145deg, #00ff88, #007755);
+      box-shadow: 0 0 10px #00ff88;
+    }
+
+    .light {
+      background: radial-gradient(circle, #ffff66, #ffaa00);
+      box-shadow: 0 0 10px #ffaa00;
+    }
+
+    .goal {
+      background: radial-gradient(circle, #00ffff, #0066aa);
+      box-shadow: 0 0 10px #00ffff;
+    }
+
+    .popup {
+      display: none;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 15px;
+    }
+
+    .popup button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #00bcd4;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .popup button:hover {
+      background-color: #0097a7;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .controls button {
+      padding: 12px 20px;
+      font-size: 1.2em;
+      background: #00bcd4;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    @media (max-width: 500px) {
+      :root {
+        --tile-size: 30px;
+      }
+      .controls button {
+        flex: 1 1 45%;
+      }
+    }
+
+    @media (min-width: 501px) {
+      :root {
+        --tile-size: 45px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🔦 Shadow Tag: Light Escape</h1>
+    <p>Move, avoid lights, reach the goal!</p>
+    <div id="scoreboard"></div>
+    <div id="timer">Time: <span id="time">0.0</span>s</div>
+    <div id="level">Level: <span id="lvl">1</span></div>
+    <div id="game"></div>
+
+    <div class="popup" id="popup">
+      <p id="popup-message"></p>
+      <p id="score-message"></p>
+      <button onclick="nextLevel()">Next Level</button>
+      <button onclick="restartGame()">Restart</button>
+    </div>
+
+    <div class="controls">
+      <button onclick="movePlayer(-10)">⬆️ Up</button>
+      <button onclick="movePlayer(-1)">⬅️ Left</button>
+      <button onclick="movePlayer(1)">➡️ Right</button>
+      <button onclick="movePlayer(10)">⬇️ Down</button>
+    </div>
+  </div>
+
+  <script>
+    const size = 10;
+    const game = document.getElementById("game");
+    const timeDisplay = document.getElementById("time");
+    const levelDisplay = document.getElementById("lvl");
+    const popup = document.getElementById("popup");
+    const popupMessage = document.getElementById("popup-message");
+    const scoreMessage = document.getElementById("score-message");
+
+    let tiles = [];
+    let playerPos = 0;
+    let goalPos = size * size - 1;
+    let lightTimer;
+    let timerInterval;
+    let time = 0;
+    let gameOver = false;
+    let level = 1;
+
+    function createBoard() {
+      game.innerHTML = "";
+      tiles = [];
+      playerPos = 0;
+      goalPos = size * size - 1;
+      gameOver = false;
+      time = 0;
+      timeDisplay.textContent = time.toFixed(1);
+      popup.style.display = "none";
+
+      game.style.gridTemplateColumns = `repeat(${size}, var(--tile-size))`;
+
+      for (let i = 0; i < size * size; i++) {
+        const div = document.createElement("div");
+        div.classList.add("tile");
+        game.appendChild(div);
+        tiles.push(div);
+      }
+
+      tiles[playerPos].classList.add("player");
+      tiles[goalPos].classList.add("goal");
+
+      startLights();
+      startTimer();
+    }
+
+    function startLights() {
+      lightTimer = setInterval(() => {
+        tiles.forEach(t => t.classList.remove("light"));
+        for (let i = 0; i < 15; i++) {
+          const index = Math.floor(Math.random() * size * size);
+          if (index !== playerPos && index !== goalPos) {
+            tiles[index].classList.add("light");
+          }
+        }
+      }, 1500);
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        time += 0.1;
+        timeDisplay.textContent = time.toFixed(1);
+      }, 100);
+    }
+
+    function endGame(message, success = false) {
+      clearInterval(lightTimer);
+      clearInterval(timerInterval);
+      gameOver = true;
+      popupMessage.textContent = message;
+      scoreMessage.textContent = success ? `Your score: ${Math.floor(1000 / time)} points` : "";
+      popup.style.display = "block";
+      popup.innerHTML = `<p>${message}</p><p>${scoreMessage.textContent}</p>${
+        success ? '<button onclick="nextLevel()">Next Level</button>' : ''
+      }<button onclick="restartGame()">Restart</button>`;
+    }
+
+    function movePlayer(delta) {
+      if (gameOver) return;
+
+      tiles[playerPos].classList.remove("player");
+      let nextPos = playerPos + delta;
+
+      if (nextPos < 0 || nextPos >= size * size) return;
+      if (delta === 1 && playerPos % size === size - 1) return;
+      if (delta === -1 && playerPos % size === 0) return;
+
+      playerPos = nextPos;
+
+      if (tiles[playerPos].classList.contains("light")) {
+        endGame("💡 You were revealed by the light!");
+        return;
+      }
+
+      if (playerPos === goalPos) {
+        tiles[playerPos].classList.remove("player");
+        tiles[goalPos].classList.remove("goal");
+        endGame(`✅ Level Complete! Time: ${time.toFixed(1)}s`, true);
+        return;
+      }
+
+      tiles[playerPos].classList.add("player");
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp") movePlayer(-size);
+      if (e.key === "ArrowDown") movePlayer(size);
+      if (e.key === "ArrowLeft") movePlayer(-1);
+      if (e.key === "ArrowRight") movePlayer(1);
+    });
+
+    function nextLevel() {
+      level++;
+      levelDisplay.textContent = level;
+      createBoard();
+    }
+
+    function restartGame() {
+      level = 1;
+      levelDisplay.textContent = level;
+      createBoard();
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
