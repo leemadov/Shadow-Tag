@@ -172,7 +172,8 @@
     <button onclick="movePlayer(1)">➡️</button>
   </div>
 
-  <script>const size = 10;
+  <script>
+const size = 10;
 const game = document.getElementById("game");
 const timeDisplay = document.getElementById("time");
 const levelDisplay = document.getElementById("lvl");
@@ -211,8 +212,9 @@ function createBoard() {
   placePlayer();
   placeGoal();
 
-  // Start lights immediately without delay
-  startLights();  // Immediately start the lights after the board is created
+  // Immediately start the lights right after the board is created
+  setTimeout(startLights, 100);  // Using setTimeout to ensure lights start quickly after board setup
+
   startTimer();   // Start the timer right after the board is ready
 }
 
@@ -270,7 +272,7 @@ function movePlayer(delta) {
 }
 
 function startLights() {
-  // Ensure that the light generation happens immediately and continuously
+  // Start the light generation immediately after the board is created
   lightTimer = setInterval(() => {
     tiles.forEach(t => t.classList.remove("light")); // Remove all lights from previous cycle
     for (let i = 0; i < 20; i++) {
@@ -279,7 +281,7 @@ function startLights() {
         tiles[index].classList.add("light"); // Add new lights randomly
       }
     }
-  }, 2000);  // Generate lights every 2 seconds
+  }, 2000);  // Lights appear every 2 seconds
 }
 
 function startTimer() {
@@ -308,8 +310,10 @@ restartBtn.addEventListener("click", () => {
   createBoard();
 });
 
-createBoard();  // Start the game immediately when the page loads
-
+// Ensure game starts immediately upon loading
+window.onload = () => {
+  createBoard();
+};
 
   </script>
 </body>
