@@ -106,6 +106,142 @@
   <button id="next-btn">Next Level</button>
   <button id="restart-btn">Restart</button>
 
-  <!-- Your JavaScript goes here (keep your existing game logic) -->
+  <script>
+  const size = 10;
+  const game = document.getElementById("game");
+  const timeDisplay = document.getElementById("time");
+  const levelDisplay = document.getElementById("lvl");
+  const gameOverText = document.getElementById("game-over");
+  const nextBtn = document.getElementById("next-btn");
+  const restartBtn = document.getElementById("restart-btn");
+
+  let tiles = [];
+  let playerPos = 0;
+  let goalPos = size * size - 1;
+  let lightTimer;
+  let timerInterval;
+  let time = 0;
+  let gameOver = false;
+  let level = 1;
+
+  function createBoard() {
+    game.innerHTML = "";
+    tiles = [];
+    playerPos = 0;
+    goalPos = size * size - 1;
+    gameOver = false;
+    time = 0;
+    timeDisplay.textContent = time.toFixed(1);
+    gameOverText.style.display = "none";
+    nextBtn.style.display = "none";
+    restartBtn.style.display = "none";
+
+    for (let i = 0; i < size * size; i++) {
+      const div = document.createElement("div");
+      div.classList.add("tile");
+      game.appendChild(div);
+      tiles.push(div);
+    }
+
+    placePlayer();
+    placeGoal();
+    startLights();
+    startTimer();
+  }
+
+  function endGame(message, success = false) {
+    if (!gameOver) {
+      clearInterval(lightTimer);
+      clearInterval(timerInterval);
+      gameOver = true;
+      gameOverText.textContent = success
+        ? `✅ Level Complete! Time: ${time.toFixed(1)}s`
+        : message;
+      gameOverText.style.display = "block";
+
+      if (success) {
+        nextBtn.style.display = "inline-block";
+      }
+
+      restartBtn.style.display = "inline-block";
+    }
+  }
+
+  function placePlayer() {
+    tiles[playerPos].classList.add("player");
+  }
+
+  function placeGoal() {
+    tiles[goalPos].classList.add("goal");
+  }
+
+  function movePlayer(delta) {
+    if (gameOver) return;
+
+    tiles[playerPos].classList.remove("player");
+    let nextPos = playerPos + delta;
+
+    if (nextPos < 0 || nextPos >= size * size) return;
+    if (delta === 1 && playerPos % size === size - 1) return;
+    if (delta === -1 && playerPos % size === 0) return;
+
+    playerPos = nextPos;
+
+    if (tiles[playerPos].classList.contains("light")) {
+      endGame("💡 You were revealed by the light and disappeared!");
+      return;
+    }
+
+    if (playerPos === goalPos) {
+      tiles[playerPos].classList.remove("player");
+      tiles[goalPos].classList.remove("goal");
+      endGame("", true);
+      return;
+    }
+
+    tiles[playerPos].classList.add("player");
+  }
+
+  function startLights() {
+    lightTimer = setInterval(() => {
+      tiles.forEach(t => t.classList.remove("light"));
+      for (let i = 0; i < 20; i++) {
+        const index = Math.floor(Math.random() * size * size);
+        if (index !== playerPos && index !== goalPos) {
+          tiles[index].classList.add("light");
+        }
+      }
+    }, 2000);
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      time += 0.1;
+      timeDisplay.textContent = time.toFixed(1);
+    }, 100);
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp") movePlayer(-size);
+    if (e.key === "ArrowDown") movePlayer(size);
+    if (e.key === "ArrowLeft") movePlayer(-1);
+    if (e.key === "ArrowRight") movePlayer(1);
+  });
+
+  nextBtn.addEventListener("click", () => {
+    level++;
+    levelDisplay.textContent = level;
+    createBoard();
+  });
+
+  restartBtn.addEventListener("click", () => {
+    level = 1;
+    levelDisplay.textContent = level;
+    createBoard();
+  });
+
+  createBoard();
+</script>
+
 </body>
 </html>
