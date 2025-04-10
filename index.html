@@ -172,8 +172,7 @@
     <button onclick="movePlayer(1)">➡️</button>
   </div>
 
-  <script>
-const size = 10;
+  <script>const size = 10;
 const game = document.getElementById("game");
 const timeDisplay = document.getElementById("time");
 const levelDisplay = document.getElementById("lvl");
@@ -191,7 +190,7 @@ let gameOver = false;
 let level = 1;
 
 function createBoard() {
-  game.innerHTML = "";
+  game.innerHTML = "";  // Clear any existing content
   tiles = [];
   playerPos = 0;
   goalPos = size * size - 1;
@@ -212,9 +211,9 @@ function createBoard() {
   placePlayer();
   placeGoal();
 
-  // Start lights immediately when the board is created
-  startLights();  // This triggers the light function right away
-  startTimer();
+  // Start lights immediately without delay
+  startLights();  // Immediately start the lights after the board is created
+  startTimer();   // Start the timer right after the board is ready
 }
 
 function endGame(message, success = false) {
@@ -271,22 +270,23 @@ function movePlayer(delta) {
 }
 
 function startLights() {
+  // Ensure that the light generation happens immediately and continuously
   lightTimer = setInterval(() => {
-    tiles.forEach(t => t.classList.remove("light"));
+    tiles.forEach(t => t.classList.remove("light")); // Remove all lights from previous cycle
     for (let i = 0; i < 20; i++) {
       const index = Math.floor(Math.random() * size * size);
       if (index !== playerPos && index !== goalPos) {
-        tiles[index].classList.add("light");
+        tiles[index].classList.add("light"); // Add new lights randomly
       }
     }
-  }, 2000);  // Lights appear every 2 seconds
+  }, 2000);  // Generate lights every 2 seconds
 }
 
 function startTimer() {
   timerInterval = setInterval(() => {
     time += 0.1;
     timeDisplay.textContent = time.toFixed(1);
-  }, 100);  // Update the time every 0.1 second
+  }, 100);  // Update time every 0.1 second
 }
 
 document.addEventListener("keydown", e => {
@@ -309,6 +309,7 @@ restartBtn.addEventListener("click", () => {
 });
 
 createBoard();  // Start the game immediately when the page loads
+
 
   </script>
 </body>
