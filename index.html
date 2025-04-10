@@ -212,9 +212,8 @@ function createBoard() {
   placePlayer();
   placeGoal();
 
-  // Immediately start the lights right after the board is created
-  setTimeout(startLights, 100);  // Using setTimeout to ensure lights start quickly after board setup
-
+  // Immediately start the lights without delay
+  startLights();  // Lights start right away
   startTimer();   // Start the timer right after the board is ready
 }
 
@@ -272,7 +271,7 @@ function movePlayer(delta) {
 }
 
 function startLights() {
-  // Start the light generation immediately after the board is created
+  // Directly generate the lights immediately as the game starts
   lightTimer = setInterval(() => {
     tiles.forEach(t => t.classList.remove("light")); // Remove all lights from previous cycle
     for (let i = 0; i < 20; i++) {
